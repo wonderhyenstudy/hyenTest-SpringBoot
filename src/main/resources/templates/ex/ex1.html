@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>ex1</title>
+</head>
+<body>
+<h1>타임리프 기본 문법</h1>
+<h2>서버로 데이터를 받아서, 화면에 출력하기. </h2>
+<!--/* strList([[${strList}]]) */-->
+<!--/* strList([[달러{변수명}]] */-->
+<h3>서버에서 전달한 박스명 : <span style="color:red">[[${strList}]]</span> </h3>
+
+<!--/* th:text="${strList}" */-->
+<h3>인라인 방식 h3 태그 내부에 </h3>
+<h3 th:text="${strList}" style="color:red"></h3>
+
+<h3>th:with 키워드를 이용한 변수 선언,</h3>
+<div th:with="num1 = ${10}, num2 = ${20}">
+    <h3 th:text="${num1 + num2}" style="color:red"></h3>
+</div>
+
+<!--반복문, 제어문 처리-->
+<!--str : forEach와 비슷-->
+<h3>타임리프의 반복문 2가지 방법 확인 1</h3>
+<ul> <!--  str 에 ${strList}를 담아서 each 반복해서 th:text="${str}" 형식으로 화면에 내보낸다 -->
+    <li th:each="str : ${strList}" th:text="${str}" style="color:red"></li>
+</ul>
+
+<h3>타임리프의 반복문 2가지 방법 확인 2</h3>
+<ul>
+    <th:block th:each="str : ${strList}">
+        <li style="color:red">[[${str}]]</li>
+    </th:block>
+</ul>
+
+<h3>반복문에 status(예약어임) 변수를 이용해 보기</h3>
+<ul>
+    <li th:each="str,status : ${strList}" >
+        status 의 index 속성 : <span style="color:red">[[${status.index}]]</span> --
+        status 의 even 속성 : <span style="color:red">[[${status.even}]]</span> --
+        status 의 odd 속성 : <span style="color:red">[[${status.odd}]]</span>
+    : <span style="color:red">[[${str}]]</span>
+    </li>
+</ul>
+
+<h3>조건문, th:if / th:unless / th:switch</h3>
+<ul>
+    <li th:each="str,status : ${strList}" >
+        <span th:if="${status.odd}" style="color:red">ODD 속성 참 인경우 : 홀수 : [[${str}]]</span>
+        <span th:unless="${status.odd}" style="color:blue">ODD 속성 참이 아닌 경우 : 짝수 : [[${str}]]</span>
+    </li>
+</ul>
+
+<h3>삼항 연산자를 이용해서 표현하기</h3>
+<ul>
+    <li th:each="str,status : ${strList}" >
+        <!-- 삼항 연산자 -> 조건 ? 참 : 거짓 -->
+        <span th:text="${status.odd} ? '홀수--'+${str} : '짝수--'+${str}"></span>
+        <span th:text="${status.odd} ? '홀수--' + ${str} : '짝수--' + ${str}"
+              th:style="${status.odd} ? 'color: red;' : 'color: blue;'">
+        </span>
+        <style>
+            .odd-text  { color: red; }
+            .even-text { color: blue; }
+        </style>
+        <span th:text="${status.odd} ? '홀수--' + ${str} : '짝수--' + ${str}"
+              th:classappend="${status.odd} ? 'odd-text' : 'even-text'">
+        </span>
+    </li>
+</ul>
+
+
+<h3>th:switch 이용해보기</h3>
+<ul>
+    <li th:each="str,status : ${strList}" >
+        <th:block th:switch="${status.index % 3}">
+            <span th:case="0">나머지 : 0, [[${str}]]</span>
+            <span th:case="1">나머지 : 1, [[${str}]]</span>
+            <span th:case="2">나머지 : 2, [[${str}]]</span>
+        </th:block>
+    </li>
+</ul>
+
+<h3>타임리프로 링크 이동해보기</h3>
+<a th:href="@{/hello}">/hello 이동하기. </a>
+
+
+<h3>링크 이동시, 쿼리 스트링 처리</h3>
+<a th:href="@{/hello(name='aaa', age=20)}">/hello 이동하기. </a> <br>
+<a th:href="@{/hello(name='오늘점심은 뭘 먹지', age=20)}">/hello 이동하기 한글도 잘됨. </a>
+
+
+
+<h3>링크 이동시, 쿼리 스트링 처리, 배열 형식으로 처리</h3>
+<p>주의사항, 문법 작성시, : types=${공백{'11','22','33'}공백} -> 공백 없으면 오류남</p>
+<a th:href="@{/hello(types=${ {'11','22','33'} }, age=20)}">/hello 이동하기. </a>
+
+<h3></h3>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</body>
+</html>
