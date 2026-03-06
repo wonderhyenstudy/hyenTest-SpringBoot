@@ -56,7 +56,7 @@ public class BoardRepositoryTests {
     //수정 테스트
     @Test
     public void testUpdate() {
-        Long bno = 100L;
+        Long bno = 3L;
         // Optional<Board> : "데이터가 담겨있을 수도 있고 비어있을 수도 있는 특별한 상자" 에 담아서 반환해줘
         // findById(bno): JPA 레포지토리가 제공하는 메서드로, PK(bno)를 이용해 데이터를 찾습니다.
         // 데이터를 Optional이라는 안전 상자에 담아준다
@@ -101,15 +101,17 @@ public class BoardRepositoryTests {
         boardRepository.search1(pageable);
     }
 
+    // 실제 페이징 처리된 검색
     @Test
     public void testSearch2() {
         // 검색, 페이징 처리 ,
         // 준비물 1) 검색 타입 2) 검색어 3) 화면에서 전달받은 페이징 처리 준비물(보기 위한 페이지 번호, 크기 10개)
-        String[] types = {"t", "c", "w"};
+        String[] types = {"t", "c", "w"}; // 명시적으로 값을 만들어서
         String keyword = "오늘";
         Pageable pageable = PageRequest.of(0,10,Sort.by("bno").descending());
         // 메서드에, 준비한 준비물을 대입을 해서, 호출해보기.
-        Page<Board> result = boardRepository.searchAll(types,keyword, pageable );
+        // 메서드를 호출할 때 매개변수(배달 물건)로 던져줍니다.
+        Page<Board> result = boardRepository.searchAll(types, keyword, pageable );
 
         // result 결과에는 다양한 페이징 준비물이 들어있다.
         log.info("전체 갯수 result.getTotalElements() : " + result.getTotalElements());

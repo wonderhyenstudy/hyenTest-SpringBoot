@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="ko"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/base}">
+<!-- 현재 파일 : ex3.html, layout/base.html 파일을 상속 받을거야. -->
+<!--이용시, base.html 에 있는 layout:fragment="content" 이용할 예정-->
+<body>
+<div layout:fragment="content">
+    <div class="row content">
+        <div class="col">
+            <div class="card">
+                <div class="card-header">
+                    Board register
+                </div>
+                <div class="card-body">
+
+                    <form action="/board/register" method="post">
+                        <div class="input-group mb-3">
+                            <label class="input-group-text">Title</label ><input type="text" class="form-control" name="title" placeholder="board 제목을 입력해주세요">
+                        </div>
+                        <div class="input-group mb-3">
+                            <label class="input-group-text">Content</label >
+                            <textarea class="form-control col-sm-5" name="content" rows="5"></textarea>
+                        </div>
+                        <div class="input-group mb-3">
+                            <label class="input-group-text">Writer</label ><input type="text" class="form-control" name="writer">
+                        </div>
+                        <div class="mb-3">
+                            <button type="reset" class="btn btn-secondary">초기화</button>
+                            <button type="submit" class="btn btn-primary">등록처리</button>
+                        </div>
+                    </form>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+
+
+</div>
+
+<script layout:fragment="script" th:inline="javascript">
+    const errors = [[${errors}]]
+    console.log("서버로부터 받은 유효성 체크 오류 : ", errors)
+
+    let errorMsg = ''
+    if(errors) {
+        for ( let i = 0; i < errors.length; i++) {
+            errorMsg += `${errors[i].field}는 : ${errors[i].code} \n`
+        }
+        alert(errorMsg)
+    }
+</script>

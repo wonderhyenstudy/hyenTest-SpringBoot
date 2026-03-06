@@ -46,19 +46,18 @@ public class Board extends BaseEntity{
 
     //추가 기능2 , 옵션 추가
     @Column(length = 500, nullable = false)
-    private String title; // 실제 데이터베이스의 테이블의 컬럼2
+    private  String title; // 실제 데이터베이스의 테이블의 컬럼2
 
     @Column(length = 2000, nullable = false)
-    private String content; // 실제 데이터베이스의 테이블의 컬럼3
+    private  String content; // 실제 데이터베이스의 테이블의 컬럼3
 
     @Column(length = 50, nullable = false)
-    private String writer; // 실제 데이터베이스의 테이블의 컬럼4
+    private  String writer; // 실제 데이터베이스의 테이블의 컬럼4
 
     // 눈에 보이지 않지만, BaseEntity를 이용해서, regDate, modDate 도 추가가 될 예정.
 
-    // 수정 메서드를 따로 만들기
-
-    public void change(String title, String content){
+    // 수정 메서드를 따로 만들기.
+    public void change(String title, String content) {
         this.title = title;
         this.content = content;
     }

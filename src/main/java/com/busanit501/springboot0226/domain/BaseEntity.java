@@ -6,6 +6,7 @@ import jakarta.persistence.MappedSuperclass;
 import lombok.Getter;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedBy;
+import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDate;
@@ -27,12 +28,12 @@ abstract class BaseEntity { // 설계 클래스 목적으로 사용 할 예정 /
 
     // 생성 시간 필드
     @CreatedDate // 생성되는 시점의 날짜를 쓰겠다. 엔티티가 생성되어 저장될 때 시간이 자동 저장됩니다.
-    @Column(name = "regDate", updatable = false) // 컬럼 명 지정, 수정 안됨
+    @Column(name = "regDate", updatable = false)
     private LocalDateTime regDate;
 
     // 수정 시간 필드
-    @LastModifiedBy // 마지막 수정된 시점의 날짜를 쓰겠다. 조회한 엔티티의 값을 변경할 때 시간이 자동 저장됩니다.
-    @Column(name = "modDate", updatable = false) // 컬럼 명 지정, 수정 안됨
+    @LastModifiedDate // 마지막 수정된 시점의 날짜를 쓰겠다. 조회한 엔티티의 값을 변경할 때 시간이 자동 저장됩니다.
+    @Column(name = "modDate")
     private LocalDateTime modDate;
 
 }

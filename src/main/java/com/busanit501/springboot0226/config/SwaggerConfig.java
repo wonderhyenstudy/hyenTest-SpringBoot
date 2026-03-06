@@ -1,0 +1,22 @@
+package com.busanit501.springboot0226.config;
+
+import io.swagger.v3.oas.models.OpenAPI;
+// 자동이 import 안되어 클래스 가져오기로 추가 하였음
+import io.swagger.v3.oas.models.info.Info;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
+@Configuration
+public class SwaggerConfig {
+
+    @Bean
+    public OpenAPI openAPI() {
+        return new OpenAPI()
+                .info(new Info()
+                        .title("레스트 API 테스트")
+                        .description("Rest 활용해서 댓글도 구현해보기")
+                        .version("1.0.0")
+                );
+    }
+
+}

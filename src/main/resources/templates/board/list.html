@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="ko"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/base}">
+<!-- 현재 파일 : ex3.html, layout/base.html 파일을 상속 받을거야. -->
+<!--이용시, base.html 에 있는 layout:fragment="content" 이용할 예정-->
+<body>
+<div layout:fragment="content">
+
+    <!-- 검색화면영역 start -->
+    <div class="row mt-3">
+        <div class="col">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">검색 및 필터</h5>
+
+                    <form action="/board/list" method="get">
+                        <!--<input type="hidden" name="size" th:value="${pageRequestDTO.size}">-->
+                        <div class="input-group">
+
+                            <select class="form-select" name="type" style="max-width: 150px;">
+                                <option value="">선택</option>
+                                <option value="t" th:selected="${pageRequestDTO.type == 't'}">제목</option>
+                                <option value="c" th:selected="${pageRequestDTO.type == 'c'}">내용</option>
+                                <option value="tc" th:selected="${pageRequestDTO.type == 'tc'}">제목+내용</option>
+                                <option value="tcw" th:selected="${pageRequestDTO.type == 'tcw'}">제목+내용+작성자</option>
+                            </select>
+
+                            <input type="text" class="form-control" name="keyword" placeholder="검색어를 입력하세요"
+                                   th:value="${pageRequestDTO.keyword}">
+
+                            <button class="btn btn-outline-primary" type="submit">검색</button>
+                            <button class="btn btn-outline-secondary clearBtn" type="button">초기화</button>
+
+                        </div>
+                    </form>
+
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- 검색화면영역 end -->
+
+    <!-- 목록화면영역 start -->
+    <div class="row content">
+        <div class="col">
+            <div class="card">
+                <div class="card-header">
+                    Board List
+                </div>
+                <div class="card-body">
+                    <table class="table">
+                        <thead>
+                        <tr>
+                            <th scope="col">Bno</th>
+                            <th scope="col">Title</th>
+                            <th scope="col">Writer</th>
+                            <th scope="col">RegDate</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <!--기존 jsp에서 jstl, 태그 라이브러리 이용했고,
+                        이제는 타임리프 문법으로 교체 작업하기-->
+                            <tr th:each="dto:${responseDTO.dtoList}">
+                                <th scope="row">[[${dto.bno}]]</th>
+                                <td>
+                                    <a th:href="|@{/board/read(bno=${dto.bno})}&${link}|" class="text-decoration-none">
+                                        [[${dto.title}]]
+                                    </a>
+                                </td>
+                                <td>[[${dto.writer}]]</td>
+                                <td>[[${#temporals.format(dto.regDate,'yyyy-MM-dd HH:mm:ss')}]]</td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+
+                    <!-- 기존 스프링 레거시에서 사용한, 부트스트랩의 페이지 네이션 가져오기 -->
+                    <div class="d-flex justify-content-center">
+                        <ul class="pagination flex-wrap">
+                            <li class="page-item" th:if="${responseDTO.prev}">
+                                <a class="page-link" th:data-num="${responseDTO.start - 1}">Previous</a>
+                            </li>
+                            <th:block th:each="i : ${#numbers.sequence(responseDTO.start, responseDTO.end)}">
+                                <li th:class="${responseDTO.page == i } ? 'page-item active' : 'page-item'">
+                                    <a class="page-link" th:data-num="${i}">[[${i}]]</a>
+                                </li>
+                            </th:block>
+
+                            <li class="page-item" th:if="${responseDTO.next}">
+                                <a class="page-link" th:data-num="${responseDTO.end + 1}">Next</a>
+                            </li>
+                        </ul>
+                    </div>
+
+
+
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- 목록화면영역 end -->
+
+    <!-- 모달창 start -->
+    <div class="modal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Modal title</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Modal body text goes here.</p>
+                    <p>등록 성공 bno : [[${result}]]</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary">Save changes</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- 모달창 end -->
+
+
+</div>
+
+<script layout:fragment="script" th:inline="javascript">
+    // 처음 테스트용 : 콘솔에서 확인하던 것
+    // const arr = [[${strList}]]
+    // console.log("arr : ", arr)
+
+    // document.querySelector(".pagination") -> <ul>태그를 의미,
+    // <ul>태그 를 포함해서, 하위에 어떤 태그, <li>, <a> 태그도 있다.
+    document.querySelector(".pagination").addEventListener("click", function (e) {
+        e.preventDefault(); // 기본 동작 막기
+        e.stopPropagation(); // 부모 요소 전팍 막기, 해당 요소외에는 클릭을 감지 안하겠다.
+        const target = e.target //클릭한 <li>, <a> 태그 요소 의미,
+        if (target.tagName !== 'A') {
+            return // 이벤트 처리 동작을 안하고, 그냥 나가겠다.
+        }
+        // <a>태그만 이벤트 처리를 하겠다.
+        // <a class="page-link" data-num=""
+        const num = target.getAttribute("data-num")
+        // 기존 정보는 단순, 페이지 정보만 유지한 채 이동했고,
+        // self.location = `/todo2/list?page=\${num}`
+
+        // 20260226 링크 정보 모두 유지하기 위해 수정 form 태그 이용
+        // 검색착 폼 태그를 이용해서, 서버에, 검색, 필터 준비물 같이 전달.
+        // 물론, 페이지, 사이즈 정보도 같이 전달. 히든으로 페이지, 사이즈 전달.
+        // 폼 방식으로 만 서버에 전달하면, 1) 검색, 필터 준비물 + 2) 페이지 정보, 사이즈 정보 같이 전달.
+        const formObj = document.querySelector("form")
+
+        // innerHTML 속성을 이용해서, page 정보를 재전달.
+        formObj.innerHTML += `<input type='hidden' name='page' value='${num}'>`
+
+        formObj.submit()
+
+
+    }, false)
+
+
+    // 초기화 버튼
+    document.querySelector(".clearBtn").addEventListener("click", function (e){
+        e.preventDefault()
+        e.stopPropagation()
+        self.location = `/board/list`
+    })
+
+    // 일반적인 alert를 이용해서, 글 작성후, 작성된 글 번호를 출력 해보기.
+    const result = [[${result}]]
+
+    // 방법1 alert
+    // if(result) {
+    //     alert(result)
+    // }
+
+
+    // 방법2 모달사용
+    const modal = new bootstrap.Modal(document.querySelector(".modal"))
+    if(result) {
+        // 모달창으로 교체 작업,
+        modal.show()
+    }
+
+    // 모달창
+    const myModal = document.getElementById('myModal')
+    const myInput = document.getElementById('myInput')
+
+    myModal.addEventListener('shown.bs.modal', () => {
+        myInput.focus()
+    })
+
+</script>
+
+
+

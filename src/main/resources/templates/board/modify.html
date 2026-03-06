@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="ko"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/base}">
+<!-- 현재 파일 : ex3.html, layout/base.html 파일을 상속 받을거야. -->
+<!--이용시, base.html 에 있는 layout:fragment="content" 이용할 예정-->
+<body>
+<div layout:fragment="content">
+    <div class="row content">
+        <div class="col">
+            <div class="card">
+                <div class="card-header">
+                    Board modify
+                </div>
+                <div class="card-body">
+                    <form th:action="@{/board/modify}" method="post" id="f1">
+                        <div class="input-group mb-3">
+                            <span class="input-group-text">Bno</span>
+                            <input class="form-control" type="text" name="bno"
+                                   th:value="${dto.bno}" readonly>
+                        </div>
+                        <div class="input-group mb-3">
+                            <span class="input-group-text">Title</span>
+                            <input class="form-control" type="text" name="title"
+                                   th:value="${dto.title}"
+                                   placeholder="board 제목을 입력해주세요">
+                        </div>
+                        <div class="input-group mb-3">
+                            <span class="input-group-text">Content</span>
+                            <textarea class="form-control col-sm-5" rows="5" name="content" th:text="${dto.content}"></textarea>
+                        </div>
+                        <div class="input-group mb-3">
+                            <span class="input-group-text">Writer</span>
+                            <input class="form-control" type="text"
+                                   th:value="${dto.writer}"
+                                   name="writer" readonly>
+                        </div>
+                        <div class="input-group mb-3">
+                            <span class="input-group-text">RegDate</span>
+                            <input class="form-control" type="text"
+                                   th:value="${#temporals.format(dto.regDate,'yyyy-MM-dd HH:mm:ss')}"
+                                   name="regDate" disabled>
+                        </div>
+                        <div class="input-group mb-3">
+                            <span class="input-group-text">ModDate</span>
+                            <input class="form-control" type="text"
+                                   th:value="${#temporals.format(dto.modDate,'yyyy-MM-dd HH:mm:ss')}"
+                                   name="modDate" disabled>
+                        </div>
+
+                        <div>
+                            <button class="btn btn-primary listBtn" type="button">목록가기</button>
+                            <button class="btn btn-secondary modBtn" type="button">수정하기</button>
+                            <button class="btn btn-danger removeBtn" type="button">삭제하기</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+
+
+</div>
+
+<script layout:fragment="script" th:inline="javascript">
+    const errors = [[${errors}]]
+    console.log("서버로부터 받은 유효성 체크 오류 : ", errors)
+
+    let errorMsg = ''
+    if(errors) {
+        for ( let i = 0; i < errors.length; i++) {
+            errorMsg += `${errors[i].field}는 : ${errors[i].code} \n`
+        }
+        alert(errorMsg)
+    }
+
+
+
+
+
+    // 수정 로직 처리, 이벤트 작업
+    const link = [[${pageRequestDTO.getLink()}]]
+
+    // 기존 폼 태그의 전달이 될 주소를 변경.
+    // 기존 폼 태그의 요소를 선택해서, 속성을 변경.
+    const formObj = document.querySelector("#f1")
+
+    // 수정하기
+    document.querySelector(".modBtn").addEventListener("click", function (e){
+        // 기존의 서버 주소로 가는 기능을 막기.
+        e.preventDefault();
+        // 해당 버튼 만 클릭을 했을 때, 이벤트가 동작하는게 원함.
+        // 만약, 버튼의 부모 요소를 클릭을 해도, 똑같이 클릭이 된 효과를 원하지 않아요.
+        // 버튼이 아니라, 그 버튼 요소의 부모 요소의 배경을 클릭해도, 똑같이 이벤트 호출이 되는 것을 막음.
+        // 결론, 삭제 버튼만 클릭해야, 삭제 기능을 동작 하겠다.
+        e.stopPropagation();
+        formObj.action = `/board/modify?${link}`
+        formObj.method = "post"
+        formObj.submit()
+
+    }), false
+
+
+
+    //목록가기
+    document.querySelector(".listBtn").addEventListener("click", function (e) {
+            // self.location = "/todo2/list"
+            self.location = `/board/list?${link}`
+        }, false
+    )
+
+    //삭제하기. -> form 태그 내부에 액션의 주소 : /todo2/modify
+    // 삭제하기 버튼 클릭 할 때, 주소를 변경 : /todo2/delete , post 로 전달하게끔, 변경.
+    // 자바스크립트 코드로 변경.
+    document.querySelector(".removeBtn").addEventListener("click", function (e) {
+
+            // 기존의 서버 주소로 가는 기능을 막기.
+            e.preventDefault();
+            // 해당 버튼 만 클릭을 했을 때, 이벤트가 동작하는게 원함.
+            // 만약, 버튼의 부모 요소를 클릭을 해도, 똑같이 클릭이 된 효과를 원하지 않아요.
+            // 버튼이 아니라, 그 버튼 요소의 부모 요소의 배경을 클릭해도, 똑같이 이벤트 호출이 되는 것을 막음.
+            // 결론, 삭제 버튼만 클릭해야, 삭제 기능을 동작 하겠다.
+            e.stopPropagation();
+            /*formObj.action = "/todo2/delete"*/
+            // 삭제 후 검색 정보 유지 하기 20260226 수정
+            formObj.action = `/board/remove`
+            formObj.method = "post"
+            formObj.submit()
+        }, false
+    )
+
+
+
+
+</script>

@@ -59,12 +59,30 @@ dependencies {
     // 순서2 Querydsl
     implementation "com.querydsl:querydsl-jpa:${queryDslVersion}:jakarta"
 
+    // 4
+    // 모델 맵퍼, DTO <-> VO 변환 해주는 도구.
+    // https://mvnrepository.com/artifact/org.modelmapper/modelmapper
+    implementation group: 'org.modelmapper', name: 'modelmapper', version: '3.2.4'
+
     // 순서3 Querydsl
     annotationProcessor(
             "jakarta.persistence:jakarta.persistence-api",
             "jakarta.annotation:jakarta.annotation-api",
             "com.querydsl:querydsl-apt:${queryDslVersion}:jakarta"
     )
+
+    // 순서5 Hibernate Validator
+    // 서버 입장에서 입력된 데이터 유효성 검증 도구
+    // 개발한 REST API를 자동으로 문서화해주고, 웹 화면에서 직접 테스트까지 할 수 있게 도와주는 도구
+    // https://mvnrepository.com/artifact/org.hibernate.validator/hibernate-validator
+    implementation group: 'org.hibernate', name: 'hibernate-validator', version: '6.2.1.Final'
+
+    // 순서6 Swagger(스웨거)
+    // 스프링에 특화
+    // Swagger UI (RestController 어노테이션을 발견,자동탐지, UI 그려줘요.)
+    // 개발한 REST API를 자동으로 문서화해주고, 웹 화면에서 직접 테스트까지 할 수 있게 도와주는 도구
+    // https://mvnrepository.com/artifact/org.springdoc/springdoc-openapi-starter-webmvc-ui
+    implementation group: 'org.springdoc', name: 'springdoc-openapi-starter-webmvc-ui', version: '2.7.0'
 
 }
 
@@ -81,3 +99,5 @@ sourceSets {
         }
     }
 }
+compileJava.dependsOn('clean')
+//순서4 queryDsl
