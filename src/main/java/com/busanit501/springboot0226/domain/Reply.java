@@ -22,11 +22,19 @@ public class Reply extends BaseEntity{
     @GeneratedValue(strategy = GenerationType.IDENTITY) // PK지정
     private Long rno; // 댓글 번호
 
-    @ManyToOne(fetch = FetchType.LAZY) // FK지정
+    @ManyToOne(fetch = FetchType.LAZY) // FK지정. 일대다 관계. 게시글 하나에 댓글 여러개. 지금 Reply 가 many 이다!
     private Board board; // 부모 게시글, 늦게 조회할 예정. 해당 데이터 조회할 당시에 테이블 검색을 하겠다.
 
     // 대문자가 "_"로 교체되어 컬럼명이 된다
     private String replyText; // 댓글 내용
     private String replyer; // 댓글 작성자
+
+    public void changeText(String text){
+        this.replyText = text;
+    }
+
+    public void changeBoard(Board board){
+        this.board = board;
+    }
 
 }

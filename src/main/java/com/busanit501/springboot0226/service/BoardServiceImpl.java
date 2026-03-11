@@ -2,6 +2,7 @@ package com.busanit501.springboot0226.service;
 
 import com.busanit501.springboot0226.domain.Board;
 import com.busanit501.springboot0226.dto.BoardDTO;
+import com.busanit501.springboot0226.dto.BoardListReplyCountDTO;
 import com.busanit501.springboot0226.dto.PageRequestDTO;
 import com.busanit501.springboot0226.dto.PageResponseDTO;
 import com.busanit501.springboot0226.repository.BoardRepository;
@@ -17,6 +18,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 // 이 클래스가 비즈니스 로직을 담당하는 서비스 객체임을 스프링 컨테이너에 알림
+// BoardService 인터페이스를 구현한 클래스가 BoardServiceImpl 다 라고 알려줌
+// 스프링이 실행될때 자동으로 연결
 @Service
 // 로그 기록(log.info 등)을 위한 기능 활성화
 @Log4j2
@@ -82,28 +85,50 @@ public class BoardServiceImpl implements BoardService{
         boardRepository.deleteById(bno);
     }
 
-    // 목록 조회 및 페이징 (List)
     @Override
     public PageResponseDTO<BoardDTO> list(PageRequestDTO pageRequestDTO) {
-        // 1. 검색 조건 및 페이지 번호/크기 정보를 추출
         String[] types = pageRequestDTO.getTypes();
         String keyword = pageRequestDTO.getKeyword();
         Pageable pageable = pageRequestDTO.getPageable("bno");
         // result 안에 페이징 준비물이 많이 들어 있다.
-        // 2. Querydsl 등이 적용된 searchAll 메서드로 페이징 처리된 Entity 목록 조회
         Page<Board> result = boardRepository.searchAll(types, keyword, pageable);
         // 페이징 처리가 된 데이터 10개 목록 가져오고,
-        // 3. 조회된 Entity 리스트를 DTO 리스트로 일괄 변환 (Stream API 활용)
         List<BoardDTO> dtoList = result.getContent().stream()
                 .map(board -> modelMapper.map(board, BoardDTO.class))
                 .collect(Collectors.toList());
         // 전체 갯수등 가져오기.
         int total = (int)result.getTotalElements();
         // PageResponseDTO 타입으로 객체를 생성.
-        // 4. 화면에서 필요한 페이징 정보(시작페이지, 끝페이지, 총 갯수 등)를 가공하여 반환
         PageResponseDTO<BoardDTO> pageResponseDTO = PageResponseDTO.<BoardDTO>withAll()
                 .pageRequestDTO(pageRequestDTO)
                 .dtoList(dtoList)
+                .total(total)
+                .build();
+
+        return pageResponseDTO;
+    }
+
+    @Override
+    public PageResponseDTO<BoardListReplyCountDTO> listWithReplyCount(PageRequestDTO pageRequestDTO) {
+
+        String[] types = pageRequestDTO.getTypes();
+        String keyword = pageRequestDTO.getKeyword();
+        Pageable pageable = pageRequestDTO.getPageable("bno");
+        // result 안에 페이징 준비물이 많이 들어 있다.
+        Page<BoardListReplyCountDTO> result = boardRepository.searchWithReplyCount(types, keyword, pageable);
+        // 페이징 처리가 된 데이터 10개 목록 가져오고,
+        // 자동으로, queryDSL 에서 자동으로 변환을 해주기 때문에, 수동으로 변환 안해도 됩니다.
+        // searchWithReplyCount , 내부에서 확인.
+
+//        List<BoardDTO> dtoList = result.getContent().stream()
+//                .map(board -> modelMapper.map(board, BoardDTO.class))
+//                .collect(Collectors.toList());
+        // 전체 갯수등 가져오기.
+        int total = (int)result.getTotalElements();
+        // PageResponseDTO 타입으로 객체를 생성.
+        PageResponseDTO<BoardListReplyCountDTO> pageResponseDTO = PageResponseDTO.<BoardListReplyCountDTO>withAll()
+                .pageRequestDTO(pageRequestDTO)
+                .dtoList(result.getContent())
                 .total(total)
                 .build();
 

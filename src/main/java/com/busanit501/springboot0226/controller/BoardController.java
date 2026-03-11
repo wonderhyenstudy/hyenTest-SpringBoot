@@ -1,6 +1,7 @@
 package com.busanit501.springboot0226.controller;
 
 import com.busanit501.springboot0226.dto.BoardDTO;
+import com.busanit501.springboot0226.dto.BoardListReplyCountDTO;
 import com.busanit501.springboot0226.dto.PageRequestDTO;
 import com.busanit501.springboot0226.dto.PageResponseDTO;
 import com.busanit501.springboot0226.service.BoardService;
@@ -34,6 +35,19 @@ public class BoardController {
     // http://localhost:8080/board/list
     // @GetMapping: 브라우저에서 '/board/list' 주소로 GET 방식 요청이 들어올 때 이 메서드가 실행됨
     // 데이터의 흐름: 사용자 요청 → PageRequestDTO → BoardService → PageResponseDTO → Model → HTML.
+    /**
+     * 게시판 목록을 페이징하여 조회합니다. (메서드 설명)
+     *
+     * @param pageRequestDTO 페이지 번호, 사이즈, 검색 조건이 담긴 객체
+     * @param model 뷰(HTML)로 데이터를 전달하기 위한 객체
+     * @return void (반환값 없음 - 요청 경로로 자동 이동)
+     */
+    /* JavaDoc 주석 : '문서화'를 위한 특수 주석
+    @param: 매개변수(Parameter) 설명입니다. [변수명] [설명] 순으로 적습니다.
+    @return: 메서드가 실행된 후 돌려주는 값(Return Value)에 대한 설명입니다.
+    @throws (또는 @exception): 메서드 실행 중 발생할 수 있는 예외를 설명할 때 씁니다.
+    @see: 참고할 다른 클래스나 메서드의 링크를 걸 때 씁니다.
+    */
     @GetMapping("/list")
     public void list(PageRequestDTO pageRequestDTO, Model model) {
         /**
@@ -43,10 +57,14 @@ public class BoardController {
          * 2. Model: 컨트롤러에서 가공한 데이터를 뷰(HTML)로 넘겨주기 위해 사용하는 바구니 객체입니다.
          */
 
+
         // 1. 서비스 계층의 list 메서드를 호출하여 결과 데이터를 가져옵니다.
         // boardService.list()는 DB에서 게시글 목록을 가져오고, 페이징 계산(시작/끝 페이지 등)까지 완료한
         // PageResponseDTO 객체를 반환합니다.
-        PageResponseDTO<BoardDTO> responseDTO = boardService.list(pageRequestDTO);
+//        PageResponseDTO<BoardDTO> responseDTO = boardService.list(pageRequestDTO);
+
+        // 기존 목록에, 댓글 갯수 포함된 , 서비스 메서드로 교체 작업.
+        PageResponseDTO<BoardListReplyCountDTO> responseDTO = boardService.listWithReplyCount(pageRequestDTO);
 
         // 2. @Log4j2를 사용하여 콘솔에 로그를 출력합니다.
         // 서비스로부터 받은 데이터(목록, 전체 개수, 현재 페이지 등)가 제대로 넘어왔는지 확인하는 디버깅 용도입니다.
@@ -72,6 +90,14 @@ public class BoardController {
 
     }
     // 화면 로직
+    /**
+     * 게시글 등록 처리를 수행합니다. (POST 방식)
+     *
+     * @param boardDTO 입력받은 게시글 데이터 (제목, 내용, 작성자 등)
+     * @param bindingResult 유효성 검사 결과 (오류 여부 확인)
+     * @param redirectAttributes 리다이렉트 시 데이터를 전달하기 위한 객체 (일회성 메시지)
+     * @return String 등록 후 이동할 페이지 경로 (성능/목록 페이지로 리다이렉트)
+     */
     @PostMapping("/register")
     public String registerPost(@Valid BoardDTO boardDTO, BindingResult bindingResult,
                                RedirectAttributes redirectAttributes) {

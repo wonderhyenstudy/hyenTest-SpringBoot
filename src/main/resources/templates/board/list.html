@@ -68,6 +68,9 @@
                                     <a th:href="|@{/board/read(bno=${dto.bno})}&${link}|" class="text-decoration-none">
                                         [[${dto.title}]]
                                     </a>
+                                    <span class="badge progress-bar-sucess" style="margin-left:4px;width:24px;height:24px;text-align: center;line-height: inherit;background-color:#666;border-radius: 100%;">
+                                        [[${dto.replyCount}]]
+                                    </span>
                                 </td>
                                 <td>[[${dto.writer}]]</td>
                                 <td>[[${#temporals.format(dto.regDate,'yyyy-MM-dd HH:mm:ss')}]]</td>
