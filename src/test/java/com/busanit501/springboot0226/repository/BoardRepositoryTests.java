@@ -13,6 +13,7 @@ import org.springframework.data.web.PageableArgumentResolver;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.stream.IntStream;
 
 @SpringBootTest
@@ -127,6 +128,29 @@ public class BoardRepositoryTests {
         log.info("페이징 처리가 된 10개 데이터 확인 result.getContent() : " + todoList);
 
     }
+
+
+    // 영속성 테스트 작업1 , 아직 고아 객체 제거 설정이 없어서,
+    // 삭제 확인은 안되지만, 참고 테스트 파일 생성.
+    @Test
+    public void testInsertWithImage() {
+
+        Board board = Board.builder()
+                .title("샘플 게시글....")
+                .content("샘플 내용....")
+                .writer("샘플 작성자...")
+                .build();
+
+        // 첨부 이미지 3개를 작성해서, Board 객체안에, 담기
+        for(int i = 0; i < 3 ; i++) {
+            board.addImage(UUID.randomUUID().toString(), "file" + i + ".png");
+
+        }
+        boardRepository.save(board);
+
+    }
+
+
 
 
 
