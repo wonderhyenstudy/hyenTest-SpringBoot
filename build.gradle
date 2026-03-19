@@ -99,6 +99,16 @@ dependencies {
             "com.querydsl:querydsl-apt:${queryDslVersion}:jakarta"
     )
 
+
+    // 7 썸네일
+    // 원본 이미지 -> 작은 이미지 변환 도구,
+    // https://mvnrepository.com/artifact/net.coobird/thumbnailator
+//    implementation group: 'net.coobird', name: 'thumbnailator', version: '0.4.20'
+    // Source: https://mvnrepository.com/artifact/net.coobird/thumbnailator
+    implementation group: 'net.coobird', name: 'thumbnailator', version: '0.4.21'
+
+
+
 }
 
 tasks.named('test') {
@@ -116,3 +126,8 @@ sourceSets {
 }
 compileJava.dependsOn('clean')
 //순서4 queryDsl
+
+
+
+
+
