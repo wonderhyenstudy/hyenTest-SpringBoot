@@ -8,6 +8,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 // Getter, Setter, toString 등을 한방에 다 만들어줌.
 @Data
@@ -33,4 +34,7 @@ public class BoardDTO {
     private String writer;
     private LocalDateTime regDate;
     private LocalDateTime modDate;
+
+    // 첨부 파일들을 담을 준비,
+    private List<String> fileNames;
 }

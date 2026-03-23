@@ -1,11 +1,10 @@
 package com.busanit501.springboot0226.service;
 
 import com.busanit501.springboot0226.domain.Board;
-import com.busanit501.springboot0226.dto.BoardDTO;
-import com.busanit501.springboot0226.dto.BoardListReplyCountDTO;
-import com.busanit501.springboot0226.dto.PageRequestDTO;
-import com.busanit501.springboot0226.dto.PageResponseDTO;
+import com.busanit501.springboot0226.domain.Reply;
+import com.busanit501.springboot0226.dto.*;
 import com.busanit501.springboot0226.repository.BoardRepository;
+import com.busanit501.springboot0226.repository.ReplyRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
@@ -41,11 +40,17 @@ public class BoardServiceImpl implements BoardService{
     // DB 접근을 위한 인터페이스
     private final BoardRepository boardRepository;
 
+    // 댓글의 삭제 기능 쓰고 싶어서 댓글의 기능들 다 들고왔다
+    // 댓글 기능 추가,
+    private final ReplyRepository replyRepository;
+
     // 글 등록 (Register)
     @Override
     public Long register(BoardDTO boardDTO) {
         // 1. 화면에서 넘어온 DTO를 DB 저장용 Entity로 변환
-        Board board = modelMapper.map(boardDTO, Board.class);
+//        Board board = modelMapper.map(boardDTO, Board.class);
+        // 방법 자동으로 변경 20260320
+        Board board = dtoToEntity(boardDTO);
         // 2. Repository를 통해 DB에 저장하고 생성된 번호(bno)를 반환
         Long bno = boardRepository.save(board).getBno();
         return bno;
@@ -55,11 +60,13 @@ public class BoardServiceImpl implements BoardService{
     @Override
     public BoardDTO readOne(Long bno) {
         // 1. bno에 해당하는 데이터를 찾음 (Optional로 감싸서 null 안전성 확보)
-        Optional<Board> result = boardRepository.findById(bno);
+//        Optional<Board> result = boardRepository.findById(bno);
+        Optional<Board> result = boardRepository.findByIdWithImages(bno);
         // 2. 결과가 없으면 예외 발생, 있으면 객체 꺼내기
         Board board = result.orElseThrow();
         // 3. Entity를 화면 전달용 DTO로 변환하여 반환
-        BoardDTO boardDTO = modelMapper.map(board, BoardDTO.class);
+//        BoardDTO boardDTO = modelMapper.map(board, BoardDTO.class);
+        BoardDTO boardDTO = entityToDto(board);
         return boardDTO;
     }
 
@@ -73,6 +80,25 @@ public class BoardServiceImpl implements BoardService{
         // 2) 변경할 내용으로 교체후
         // 2. Entity 내부의 변경 메서드(change)를 호출하여 데이터 수정 (더티 체킹 활용)
         board.change(boardDTO.getTitle(), boardDTO.getContent());
+
+        // 첨부 이미지를 이용한 수정작업,
+        // 기존 이미지를 모두 삭제 후, 새로운 이미지 추가
+        board.clearImages();// 첨부 이미지의 부모 게시글 번호를 null 로 변경, 고아객체,
+
+        // 화면으로부터, 첨부된 이미지가 있다면, 그러면, 추가.
+        if(boardDTO.getFileNames() != null) {
+            for(String fileName : boardDTO.getFileNames()) {
+                // 예시
+                // fileName : 5b418a60-407e-406e-991e-db88d35ea426_크롬기준-로컬스토리지 저장소 확인 방법.PNG
+                // fileName : UUID_원본파일명
+                String[] arr = fileName.split("_");
+                board.addImage(arr[0], arr[1]);
+            }
+        }
+
+
+
+
         // 3) 저장(수정)
         // 3. 변경된 내용을 DB에 반영
         boardRepository.save(board);
@@ -82,7 +108,19 @@ public class BoardServiceImpl implements BoardService{
     @Override
     public void remove(Long bno) {
         // PK(bno)를 기준으로 DB 데이터 삭제
+//        boardRepository.deleteById(bno);
+
+        // 게시글을 삭제하면, 댓글은
+        // 댓글의 존재 여부를 확인 후, 있으면 삭제하기.
+        List<Reply> result = replyRepository.findByBoard_Bno(bno);
+        boolean checkReplyList = result.isEmpty() ? false : true;
+        if(checkReplyList) {
+            replyRepository.deleteByBoard_Bno(bno);
+        }
+        // 게시글만 삭제, 참고로, 연관관계로, 게시글이 삭제가 되면,
+        // 자동으로, 첨부 이미지는 삭제가됨.
         boardRepository.deleteById(bno);
+
     }
 
     @Override
@@ -134,4 +172,26 @@ public class BoardServiceImpl implements BoardService{
 
         return pageResponseDTO;
     }
+
+    @Override
+    public PageResponseDTO<BoardListAllDTO> listWithAll(PageRequestDTO pageRequestDTO) {
+
+        String[] types = pageRequestDTO.getTypes();
+        String keyword = pageRequestDTO.getKeyword();
+        Pageable pageable = pageRequestDTO.getPageable("bno");
+
+        // 수정1, <========searchWithAll 교체 ========================
+        Page<BoardListAllDTO> result = boardRepository.searchWithAll(types,keyword,pageable);
+
+        return PageResponseDTO.<BoardListAllDTO>withAll()
+                .pageRequestDTO(pageRequestDTO)
+                .dtoList(result.getContent())
+                .total((int) result.getTotalElements())
+                .build();
+    }
+
+
+
+
+
 }

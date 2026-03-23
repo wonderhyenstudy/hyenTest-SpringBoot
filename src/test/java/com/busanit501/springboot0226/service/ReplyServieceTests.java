@@ -22,7 +22,7 @@ public class ReplyServieceTests {
                 .replyText("샘플 댓글 작성 서비스 테스트 내용")
                 .replyer("샘플 사용자")
                 // 주의사항, 각자 데이터베이스에 게시글 번호 확인 후 작업하기.
-                .bno(106L)
+                .bno(220L)
                 .build();
         Long rno = replyService.register(replyDTO);
         log.info("작성 후, 댓글 번호 : " + rno);

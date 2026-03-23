@@ -1,6 +1,8 @@
 package com.busanit501.springboot0226.repository;
 
 import com.busanit501.springboot0226.domain.Board;
+import com.busanit501.springboot0226.domain.BoardImage;
+import com.busanit501.springboot0226.domain.Reply;
 import lombok.extern.log4j.Log4j2;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,6 +12,8 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableArgumentResolver;
+import org.springframework.test.annotation.Commit;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
@@ -26,6 +30,10 @@ public class BoardRepositoryTests {
     private BoardRepository boardRepository;
     @Autowired
     private PageableArgumentResolver pageableArgumentResolver;
+    // 게시글 삭제시, 댓글 삭제 기능도 필요해서, 도움을 요청.
+    @Autowired
+    private ReplyRepository replyRepository;
+
 
     // 연습 : 더미 데이터 만들기
     @Test
@@ -150,8 +158,128 @@ public class BoardRepositoryTests {
 
     }
 
+    // @EntityGraph 이용한 호출 , 즉 N+1 문제 해결책.
+    // 조인해서, 두 테이블을 붙여서, 한번만 호출할 예정.
+    // 이 과정을 보여주기.
+    @Test
+    // 메서드나 클래스 단위의 작업들을 하나의 논리적 트랜잭션으로 묶어,
+    // 모두 성공(Commit)하거나 모두 실패(Rollback)하게 만드는 선언적 트랜잭션 관리 기능
+    // 데이터 작업의 '전부 아니면 전무(All or Nothing)'를 보장하는 어노테이션
+    // 데이터 변경 작업(DML) 수행 후 성공 시 커밋, 예외 발생 시 자동으로 롤백
+    // 데이터 불일치 방지
+    @Transactional
+    public void testReadWithImage() {
+        // 샘플테이블에서, 게시글 번호를 조회.
+        // 각자 데이터 베이스 이용해야함.
+        // 왜 Optional 로 받지?
+//        Optional<Board> result = boardRepository.findById(119L);
+        // BoardRepository 만들어둔 메서드 사용
+        Optional<Board> result = boardRepository.findByIdWithImages(119L);
+        Board board = result.orElseThrow();
+        log.info("board 조회 해보기 : " + board);
 
 
+        log.info("====================================== ");
+        log.info("board에 첨부된 이미지들을 조회 해보기 : " + board.getImageSet());
+        // 에러가 발생함. no session
 
+        // 첨부 이미지를 확인
+        // board.getImageSet() 반복으로 하나씩 꺼내서 boardImage 에 담는다
+        for( BoardImage boardImage: board.getImageSet()) {
+            log.info("게시글에 첨부된 이미지 조회 : " + boardImage);
+        }
+    }
+
+    // 수정해보기.
+    @Test
+    // 해당 메서드안에 여러개의 작업을 하나의 단위로 만들어서, 모두 수행이 되면 진행시키고, 하나라도 진행이 안되면, 진행안해줘
+    // 예시) 돈 이체(메서드기능), 행위1:(송금자 계자 -), 행위2:(받는자.계좌 +)
+    // 예시) (행위1, 행위2) : 하나의 단위로 묶기, 트랜잭션 무조건 행위1, 행위2가 다같이 실행이 되어야함.
+    // 만약, 2개중에 하나라도 안되면, 무조건 롤백.
+    // 한 메서드 안의 여러 행위들을 하나로 묶어줘서, 하나가 에러 나면 모두다 실행 안되게 끔 한다.
+    @Transactional
+    @Commit // 저장히기
+    public void testModifyImage() {
+        // 기존 게시글에는, 첨부 이미지 샘플 3개있음.
+        Optional<Board> result = boardRepository.findByIdWithImages(112L);
+        Board board = result.orElseThrow();
+        log.info("board 조회 해보기 : " + board);
+
+        // 기존의 첨부파일들은 삭제
+        board.clearImages();
+
+        // 새로운 첨부 파일들 추가
+        for(int i = 0; i < 3 ; i++) {
+            board.addImage(UUID.randomUUID().toString(), "수정4_file_" + i + ".png");
+            log.info("게시글에 첨부된 이미지 조회 : " + board.getImageSet());
+        }
+
+
+        // 테스트 실행을 하면, 고아 객체 형태로 남아 있는 거 먼저 확인. 후, 고아 객체 제거하는 설정하기.
+        boardRepository.save(board);
+
+    }
+
+
+    // 이미지 삭제
+    @Transactional
+    @Commit
+    @Test
+    //import org.springframework.transaction.annotation.Transactional;
+    public void testRemoveAll() {
+        Long bno = 112L;
+        // 샘플 게시글 번호 : 1L
+        replyRepository.deleteByBoard_Bno(bno);
+        // 그리고 나서, 게시글 지우기.
+        boardRepository.deleteById(bno);
+    }
+
+    // 약 100 개정도의 게시글과, 댓글, 첨부 이미지 까지만, 더미데이터 추가 해보기.
+    @Transactional
+    @Commit
+    @Test
+    public void testInsertAll() {
+        for (int i = 1; i <= 100; i++) {
+            Board board = Board.builder()
+                    .title("샘플 데이터 " + i)
+                    .content("샘플 제목 " + i)
+                    .writer("이상용" + i)
+                    .build();
+
+            for (int j = 0; j < 3; j++) {
+                if (i % 5 == 0) {
+                    // 5번째 씩 , 첨부 이미지 추가 안하기.
+                    continue;
+                }
+                // 첨부 이미지 3장씩 더미데이터
+                String uuid = UUID.randomUUID().toString();
+                String fileName = "샘플 이미지";
+                board.addImage(uuid, fileName + j + ".png");
+
+
+            }
+            // 게시글 작성 후 ,
+            boardRepository.save(board);
+            // 댓글 달기.
+            for (int j = 0; j < 3; j++) {
+                Reply reply = Reply.builder()
+                        .board(board)
+                        .replyText("샘플 댓글" + j)
+                        .replyer("이상용")
+                        .build();
+                replyRepository.save(reply);
+            }
+        }
+    }
+
+    // N + 1 , test 문제 상황 보기.
+    @Transactional
+    @Test
+    public void testSearchImageReplyCount() {
+        Pageable pageable = PageRequest.of(0,10,Sort.by("bno").descending());
+        boardRepository.searchWithAll(null,null,pageable);
+
+    }
 
 }
+
