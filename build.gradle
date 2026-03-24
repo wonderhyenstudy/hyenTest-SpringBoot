@@ -107,7 +107,10 @@ dependencies {
     // Source: https://mvnrepository.com/artifact/net.coobird/thumbnailator
     implementation group: 'net.coobird', name: 'thumbnailator', version: '0.4.21'
 
-
+    // 8 로그인 인증, 인가 작업
+    // 스프링 시큐리티, 버전.
+    // Source: https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter-security
+    implementation("org.springframework.boot:spring-boot-starter-security:3.5.11")
 
 }
 
